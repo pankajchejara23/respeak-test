@@ -12,7 +12,11 @@ import datetime
 from google_home_led_pattern import GoogleHomeLedPattern
 from pixels import Pixels, pixels
 
+def on_connect():
+    print("Connected to Broker....")
 
+def on_disconnect():
+    print('Disconnected from Broker')
 
 if len(sys.argv)!=2:
     print('You have not specified the MQTT Broker IP adress')
@@ -30,11 +34,14 @@ client = mqtt.Client(client_id='publish1')
 
 # Connecting callback functions
 client.on_connect = connect_msg
-client.on_publish = publish_msg
 
-# Connect to broker
-client.connect("127.0.0.1",1883,60)
 
+try:
+    # Connect to broker
+    client.connect("127.0.0.1",1883,60)
+except:
+    print("Broker is not running....")
+    print("Terminating the program")
 # Publish a message with topic
 for d in [60,59,150,331,210]:
     data = str(datetime.datetime.now())+", %d\n"%d
