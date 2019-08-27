@@ -7,7 +7,7 @@ import apa102
 from gpiozero import LED
 import wave
 import pyaudio
-
+import paho.mqtt.client as mqtt
 import datetime
 from google_home_led_pattern import GoogleHomeLedPattern
 from pixels import Pixels, pixels
@@ -30,22 +30,23 @@ wavframes = []
 
 
 # Creating client
-client = mqtt.Client(client_id='publish1')
+client = mqtt.Client(client_id='publish4')
 
 # Connecting callback functions
-client.on_connect = connect_msg
+client.on_connect = on_connect
+client.on_disconnect = on_disconnect
 
 
 try:
     # Connect to broker
-    client.connect("127.0.0.1",1883,60)
+    client.connect(sys.argv[0],1883,60)
 except:
     print("Broker is not running....")
     print("Terminating the program")
 # Publish a message with topic
 for d in [60,59,150,331,210]:
     data = str(datetime.datetime.now())+", %d\n"%d
-    ret= client.publish("respeaker/group-1",data)
+    ret= client.publish("respeaker/group-4",data)
 
 
 
@@ -117,7 +118,7 @@ def main():
                     if speech_count > (doa_chunks / 2):
                         frames = np.concatenate(chunks)
                         direction = mic.get_direction(frames)
-                        show(direction)
+                        #show(direction)
                         now = datetime.datetime.now()
                         data = '{},{}\n'.format(now.strftime("%H:%M:%S %d-%m-%Y"),int(direction))
                         print('\n{},{}'.format(now.strftime("%H:%M:%S %d-%m-%Y"),int(direction)))
@@ -128,7 +129,8 @@ def main():
 
     except KeyboardInterrupt:
         client.disconnect()
-        wav = wave.open('session.wav','wb')
+        filename = 'session_%s.wav'%str(datetime.datetime.now())
+        wav = wave.open(filename,'wb')
         wav.setnchannels(CHANNELS)
         wav.setsampwidth(audInstance.get_sample_size(pyaudio.paInt16))
         wav.setframerate(RATE)
